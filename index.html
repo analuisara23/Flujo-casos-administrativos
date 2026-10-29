@@ -1,0 +1,172 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Flujo de Casos Administrativos</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: columna única de pasos conectados, con carril de rol a la izquierda y estado del caso a la derecha */
+:root{
+  --bg:#f6f7f8; --surface:#ffffff; --fg:#1d2329; --muted:#5b6670; --line:#d5dbe0;
+  --accent:#1f5f8b; --accent-soft:#e3eef6;
+  --warn:#a5560f; --warn-soft:#fbeedd; --ok:#2c6e49; --ok-soft:#e2f1e8;
+  --display:"Fraunces",Georgia,serif; --body:"IBM Plex Sans",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#14181c; --surface:#1d2328; --fg:#e6eaee; --muted:#9aa5ae; --line:#323b43;
+  --accent:#7db4dc; --accent-soft:#1f3343; --warn:#f0a35b; --warn-soft:#3a2a18; --ok:#7cc79a; --ok-soft:#1d3327; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#14181c; --surface:#1d2328; --fg:#e6eaee; --muted:#9aa5ae; --line:#323b43;
+  --accent:#7db4dc; --accent-soft:#1f3343; --warn:#f0a35b; --warn-soft:#3a2a18; --ok:#7cc79a; --ok-soft:#1d3327; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.5}
+.wrap{max-width:820px;margin:0 auto;padding-block:40px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1{font-family:var(--display);font-weight:600;font-size:clamp(26px,4.5vw,34px);line-height:1.15;margin:0 0 8px;text-wrap:balance}
+.lede{color:var(--muted);margin:0 0 28px;max-width:62ch}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+.flow{display:flex;flex-direction:column}
+.step{display:grid;grid-template-columns:38px 1fr;gap:14px;position:relative}
+.step:not(:last-child)::before{content:"";position:absolute;left:18px;top:40px;bottom:-2px;width:2px;background:var(--line)}
+.num{width:38px;height:38px;border-radius:50%;background:var(--accent);color:var(--surface);display:grid;place-items:center;font-family:var(--mono);font-size:14px;position:relative;z-index:1}
+.step.decision .num{background:var(--warn);border-radius:8px;transform:rotate(45deg)}
+.step.decision .num span{transform:rotate(-45deg)}
+.step.close .num{background:var(--ok)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin-bottom:16px;min-width:0}
+.head{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:6px 12px}
+.card h3{margin:0;font-size:16px;font-weight:600}
+.who{font-size:12.5px;color:var(--muted)}
+.who b{color:var(--fg);font-weight:500}
+.card p{margin:6px 0 0;color:var(--fg)}
+.meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.pill{font-family:var(--mono);font-size:11.5px;padding:3px 8px;border-radius:999px;background:var(--accent-soft);color:var(--accent)}
+.pill.time{background:transparent;border:1px solid var(--line);color:var(--muted)}
+.pill.warn{background:var(--warn-soft);color:var(--warn)}
+.pill.ok{background:var(--ok-soft);color:var(--ok)}
+.branch{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.branch div{border:1px dashed var(--line);border-radius:8px;padding:8px 10px;font-size:13.5px}
+.branch b{display:block;font-size:12px;font-family:var(--mono);margin-bottom:2px}
+.branch .y b{color:var(--warn)} .branch .n b{color:var(--ok)}
+.loop{font-size:13px;color:var(--muted);margin-top:8px}
+section.notes{margin-top:28px;display:grid;grid-template-columns:1fr;gap:14px;max-width:62ch}
+.note{border-top:2px solid var(--accent);padding-top:10px}
+.note.alt{border-color:var(--warn)}
+.note h2{font-size:14px;margin:0 0 6px;font-weight:600}
+.note ul{margin:0;padding-left:18px;color:var(--muted);font-size:14px}
+.states{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:0 0 26px;font-size:13px;color:var(--muted)}
+.states .arrow{color:var(--line)}
+.kpis{margin-top:32px}
+.kpis h2{font-family:var(--display);font-weight:600;font-size:22px;margin:0 0 4px}
+.kpis .sub{color:var(--muted);margin:0 0 14px;font-size:14px}
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--surface);margin-bottom:14px}
+.tbl table{border-collapse:collapse;width:100%;min-width:560px;font-size:14px}
+.tbl th,.tbl td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+.tbl tr:last-child td{border-bottom:0}
+.tbl th{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:500}
+.tbl caption{caption-side:top;text-align:left;padding:10px 12px 0;font-weight:600}
+.tbl caption span{font-weight:400;color:var(--muted);font-size:13px}
+@media (max-width:560px){.branch,section.notes{grid-template-columns:1fr}}
+</style>
+
+<div class="wrap">
+  <div class="eyebrow">Cobros corporativos · Propuesta MVP</div>
+  <h1>Flujo operativo de casos administrativos</h1>
+  <p class="lede">Ruta de un caso desde que el gestor detecta que una factura no se puede cobrar por una causa interna, hasta su cierre y reporte a Comercial. El registro se hace en una lista de Microsoft Lists, agregada como pestaña en el canal de Teams de Cobros corporativos, y es la única fuente del caso.</p>
+
+  <div class="states" aria-label="Estados del caso">
+    <span>Estados:</span>
+    <span class="pill">Abierto</span><span class="arrow">→</span>
+    <span class="pill">En gestión</span><span class="arrow">→</span>
+    <span class="pill warn">Escalado</span><span class="arrow">→</span>
+    <span class="pill ok">Resuelto</span><span class="arrow">→</span>
+    <span class="pill ok">Cerrado</span>
+  </div>
+
+  <div class="flow">
+    <div class="step"><div class="num">1</div><div class="card">
+      <div class="head"><h3>Detección</h3><span class="who"><b>Oficial de cuentas clave / gestor corporativo</b></span></div>
+      <p>Al gestionar el cobro identifica que el cliente no paga por una causa interna: producto no entregado, devolución no anulada, factura tardía o sin presupuesto.</p>
+      <div class="meta"><span class="pill time">Durante la gestión de cobro</span></div>
+    </div></div>
+
+    <div class="step"><div class="num">2</div><div class="card">
+      <div class="head"><h3>Registrar el caso en Microsoft Lists</h3><span class="who"><b>Gestor</b></span></div>
+      <p>Entra a la pestaña <b>“Casos administrativos”</b> del canal de Teams de Cobros corporativos, da clic en <b>“Nuevo”</b> y llena el formulario: cliente, número de factura (obligatorio, sin errores), monto, fechas, tipo de caso y área responsable. Cada caso queda como una fila de la lista.</p>
+      <p class="loop">La lista es la misma todos los meses: conserva el historial y registra quién modificó cada caso y cuándo. El número de factura es la llave para cruzar con la cartera.</p>
+      <div class="meta"><span class="pill">Abierto</span><span class="pill time">24–48 h desde la detección</span></div>
+    </div></div>
+
+    <div class="step"><div class="num">3</div><div class="card">
+      <div class="head"><h3>Asignación al área responsable</h3><span class="who"><b>Aviso automático</b> (Teams / correo)</span></div>
+      <p>Comercial, Finanzas o Taller recibe la notificación del caso asignado.</p>
+      <div class="meta"><span class="pill time">Inmediato</span></div>
+    </div></div>
+
+    <div class="step"><div class="num">4</div><div class="card">
+      <div class="head"><h3>Respuesta y fecha compromiso</h3><span class="who"><b>Área responsable</b></span></div>
+      <p>Indica la acción que tomará y la fecha en que quedará resuelto. Se actualiza en la misma fila de la lista (estado, fecha compromiso y comentarios de seguimiento).</p>
+      <div class="meta"><span class="pill">En gestión</span><span class="pill time">Según SLA a definir</span></div>
+    </div></div>
+
+    <div class="step decision"><div class="num"><span>?</span></div><div class="card">
+      <div class="head"><h3>¿Se cumplió la fecha compromiso?</h3><span class="who"><b>Dueño del proceso</b></span></div>
+      <div class="branch">
+        <div class="n"><b>SÍ</b>Continúa al paso 5.</div>
+        <div class="y"><b>NO</b>Se escala a la jefatura del área responsable. Estado <span class="pill warn">Escalado</span></div>
+      </div>
+      <p class="loop">El caso escalado regresa al paso 4 con una nueva fecha compromiso.</p>
+    </div></div>
+
+    <div class="step"><div class="num">5</div><div class="card">
+      <div class="head"><h3>Solución de la causa</h3><span class="who"><b>Área responsable</b></span></div>
+      <p>Anula la factura, entrega el producto, entrega la factura o retira el equipo.</p>
+      <div class="meta"><span class="pill ok">Resuelto</span></div>
+    </div></div>
+
+    <div class="step close"><div class="num">6</div><div class="card">
+      <div class="head"><h3>Cierre del caso</h3><span class="who"><b>Gestor</b></span></div>
+      <p>Confirma el pago o la anulación y registra la causa raíz y la fecha de cierre en la lista.</p>
+      <div class="meta"><span class="pill ok">Cerrado</span><span class="pill time">Al cobrar o anular</span></div>
+    </div></div>
+
+    <div class="step close"><div class="num">7</div><div class="card">
+      <div class="head"><h3>Reporte a Comercial</h3><span class="who"><b>Dueño del proceso</b></span></div>
+      <p>Comparte la vista de casos abiertos de la lista y un resumen corto de los casos cerrados en el mes y su causa. No requiere Power BI ni apoyo de Datos.</p>
+      <div class="meta"><span class="pill time">Primeros 5 días hábiles del mes</span></div>
+    </div></div>
+  </div>
+
+  <section class="kpis">
+    <div class="eyebrow">Salida del flujo</div>
+    <h2>Indicadores de seguimiento</h2>
+    <p class="sub">Todo sale directo de la lista, con vistas guardadas, totales y columnas calculadas que se configuran una sola vez. Con unos 10 casos al mes, el valor está en el seguimiento de cada caso y su monto, no en estadísticas complejas.</p>
+
+    <div class="tbl"><table>
+      <caption>Semanal · seguimiento operativo <span>— vistas guardadas en Lists, a cargo del dueño del proceso</span></caption>
+      <thead><tr><th>Indicador</th><th>Cómo se obtiene</th><th>Para qué</th></tr></thead>
+      <tbody>
+        <tr><td>Casos abiertos y monto</td><td>Casos en estado distinto de Cerrado; suma de montos</td><td>Saber cuánto dinero está detenido hoy</td></tr>
+        <tr><td>Casos vencidos</td><td>Fecha compromiso menor a hoy y caso no resuelto</td><td>Decidir qué se escala esa semana</td></tr>
+        <tr><td>Casos sin respuesta del área</td><td>Casos en Abierto sin fecha compromiso</td><td>Insistir con el área responsable</td></tr>
+      </tbody>
+    </table></div>
+
+    <div class="tbl"><table>
+      <caption>Mensual · reporte a Comercial <span>— primeros 5 días hábiles, desde la misma lista</span></caption>
+      <thead><tr><th>Indicador</th><th>Cómo se obtiene</th><th>Qué vigilar</th></tr></thead>
+      <tbody>
+        <tr><td>Casos abiertos, monto y antigüedad</td><td>Vista de casos abiertos ordenada por monto, con total al pie</td><td>Cuánto dinero sigue detenido y desde cuándo</td></tr>
+        <tr><td>Casos cerrados en el mes y su causa</td><td>Vista de casos cerrados en el mes, agrupada por causa raíz</td><td>Qué causas se repiten</td></tr>
+        <tr><td>Días de resolución por caso</td><td>Columna calculada: fecha de cierre − fecha de detección</td><td>Casos que tardaron más de lo esperado</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <section class="notes">
+    <div class="note alt">
+      <h2>Fase 2 (revisar en 3 a 6 meses)</h2>
+      <ul>
+        <li>Tablero en Power BI y cruce con la cartera por número de factura, solo si crece el volumen o Comercial pide más análisis.</li>
+        <li>Por ahora el registro es manual, sin conexión con SAP ni marca en el sistema de cobros.</li>
+      </ul>
+    </div>
+  </section>
+</div>
+
+</body></html>
